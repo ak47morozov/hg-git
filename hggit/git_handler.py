@@ -1202,7 +1202,24 @@ class GitHandler(object):
             if not httpclient:
                 raise RepoError('git via HTTP requires dulwich 0.8.1 or later')
             else:
+                ui = self.ui
+                def _perform(self, req):
+                    import base64, urllib2
+                    print( uri )                    
+                    prefix = ''
+                    for item in ui.configitems('auth'):
+                        # find first not empty prefix, that startswtih uri
+                        if uri.startswith(item[1]) and len(item[1]) > 0:
+                            prefix = item[0].split('.')[0]
+                            break
+                    username = ui.config('auth', '%s.username' % prefix)
+                    password = ui.config('auth', '%s.password' % prefix)
+                    base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+                    req.add_header("Authorization", "Basic %s" % base64string)
+                    return urllib2.urlopen(req)
+                client.HttpGitClient._perform = _perform
                 return client.HttpGitClient(uri, thin_packs=False), uri
+        return client.HttpGitClient(uri, thin_packs=False), uri
 
         # if its not git or git+ssh, try a local url..
         return client.SubprocessGitClient(thin_packs=False), uri

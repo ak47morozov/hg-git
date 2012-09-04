@@ -4,3 +4,4 @@ tests/*.err
 build
 dist
 *.egg-info
+*.pyo
